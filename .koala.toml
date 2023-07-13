@@ -1,0 +1,47 @@
+Name = "test-managed-by"
+Description = "Hello Koala!"
+Owners = ["nadaverell@gmail.com"]
+ServerFramework = "go-server"
+ServerMain = ""
+ArtifactRepository = "me-west1-docker.pkg.dev/koala-ops-demo-373407/koala-repo"
+Domain = "cluster.koalaops.com"
+Port = 8080
+
+[Repo]
+  Name = "test-managed-by"
+  GitUser = "koala-sandbox"
+  URL = "https://github.com/koala-sandbox/test-managed-by"
+
+[OpenAPIConfig]
+  SpecPath = ""
+  CodegenTool = ""
+
+[[Environments]]
+  Name = "dev"
+  Namespace = "dev"
+  Cluster = "koala-demo-cluster"
+  IngressEnabled = true
+  IngressHost = ""
+  [Environments.EnvDeploymentConfig]
+    AutoDeploy = true
+
+[[Environments]]
+  Name = "prod"
+  Namespace = "prod"
+  Cluster = "koala-demo-cluster"
+  IngressEnabled = true
+  IngressHost = ""
+  [Environments.EnvDeploymentConfig]
+    AutoDeploy = false
+
+[SSLConfig]
+  CertName = "test-managed-by-tls-cert"
+  Issuer = "letsencrypt"
+  IssuerContactEmail = "nadav@koalaops.com"
+
+[Tracing]
+  Backend = ""
+  URL = ""
+
+[Profiling]
+  Tool = ""

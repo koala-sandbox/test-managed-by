@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-managed-by
+  labels:
+    app: test-managed-by
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-managed-by
+  template:
+    spec:
+      containers:
+      - name: test-managed-by
+        image: me-west1-docker.pkg.dev/koala-ops-demo-373407/koala-repo/test-managed-by:latest
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: 1000m
+            memory: 1000Mi
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: test-managed-by-configmap
+    metadata:
+      labels:
+        app: test-managed-by

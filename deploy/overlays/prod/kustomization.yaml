@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+configMapGenerator:
+- behavior: merge
+  envs:
+  - .env
+  name: test-managed-by-configmap
+images:
+- name: me-west1-docker.pkg.dev/koala-ops-demo-373407/koala-repo/test-managed-by
+  newTag: 0.0.1
+kind: Kustomization
+labels:
+- pairs:
+    app.kubernetes.io/version: 0.0.1
+namePrefix: prod-
+namespace: prod
+patches:
+- path: ingress-patch.yaml
+  target:
+    kind: Ingress
+resources:
+- ../../base
