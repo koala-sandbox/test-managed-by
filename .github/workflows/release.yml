@@ -1,0 +1,65 @@
+# Create a new Release.
+
+# This workflow will update tag/version, build and push a Docker container to the container registry.
+# If configured to auto-deploy, it will also deploy the new version to the cluster.
+name: Release
+
+#  Prevent concurrent runs on the same branch/tag ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on: 
+  push:
+    branches:
+      - main
+env:
+  VERSION_FILE: VERSION
+jobs:
+
+  update_version_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.update_version.outputs.tag }}
+    permissions:
+      contents: 'write'
+      id-token: 'write'      
+    steps:
+      - uses: actions/checkout@v3
+      - id: update_version
+        name: Read VERSION file and bump minor version
+        run: |
+          TAG=$(cat $VERSION_FILE | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
+          echo "New version is $TAG"
+          echo $TAG > $VERSION_FILE
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        id: commit-and-push
+        with:
+          commit_message: Update VERSION to --> ${{ steps.update_version.outputs.tag }} [skip ci]
+          commit_user_name: GitHub Actions Bot
+          commit_user_email: CI@users.noreply.github.com
+  
+  build:
+    uses: ./.github/workflows/build_image.yml
+    needs: update_version_tag
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+    with:
+      tag: ${{ needs.update_version_tag.outputs.tag }}
+    secrets: inherit
+
+  # Deploy the new version to the cluster
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    needs: [update_version_tag, build]
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+    with:
+      tag: ${{ needs.update_version_tag.outputs.tag }}
+      overlay: dev
+      cluster_name: koala-demo-cluster
+      cluster_zone: me-west1-a
+    secrets: inherit
